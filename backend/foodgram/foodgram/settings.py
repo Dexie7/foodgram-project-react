@@ -1,7 +1,11 @@
 import os
+import sys
+
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', default='very-secret-key@#RFesf')
 
 DEBUG = int(os.environ.get('DEBUG', '0'))
@@ -108,8 +112,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
-    'DEFAULT_PAGINATION_CLASS':
-        'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
 
@@ -123,7 +126,6 @@ DJOSER = {
         'username_reset_confirm': ['rest_framework.permissions.IsAdminUser'],
         'set_username': ['rest_framework.permissions.IsAdminUser'],
         'user_delete': ['rest_framework.permissions.IsAdminUser'],
-
         'set_password': ['rest_framework.permissions.IsAuthenticated'],
         'user_create': ['api.permissions.AnonymousOnly'],
         'user': ['rest_framework.permissions.IsAuthenticated'],
@@ -138,7 +140,7 @@ DJOSER = {
         'current_user': 'api.serializers.CustomUserSerializer',
     },
     'HIDE_USERS': False
-    }
+}
 
 FIXTURE_DIRS = (
     os.path.join(BASE_DIR, 'api/tests/fixtures/'),
