@@ -4,7 +4,7 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, mixins, permissions, status, viewsets
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView, Response
 
@@ -18,13 +18,9 @@ from api.serializers import (IngredientSerializer,
 from core import pdf
 from recipes.models import (Favorite, Ingredient, IngredientRecipeRelation,
                             Recipe, ShoppingCart, Subscription, Tag)
+from .mixins import ListRetrieveViewSet
 
 User = get_user_model()
-
-
-class ListRetrieveViewSet(viewsets.GenericViewSet, mixins.ListModelMixin,
-                          mixins.RetrieveModelMixin):
-    permission_classes = (permissions.AllowAny,)
 
 
 class TagViewSet(ListRetrieveViewSet):
@@ -66,7 +62,7 @@ class SubscriptionsManageView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        pk = kwargs.get('pk', None)
+        pk = kwargs.get('pk')
 
         author = get_object_or_404(User, pk=pk)
         user = request.user
@@ -90,7 +86,7 @@ class SubscriptionsManageView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
-        pk = kwargs.get('pk', None)
+        pk = kwargs.get('pk')
 
         user = request.user
         author = get_object_or_404(User, id=pk)

@@ -1,9 +1,5 @@
-import base64
-import mimetypes
-
 import djoser.serializers
 from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -11,6 +7,7 @@ from rest_framework.settings import api_settings
 
 from recipes.models import (Favorite, Ingredient, IngredientRecipeRelation,
                             Recipe, ShoppingCart, Subscription, Tag)
+from .fields import ImageBase64Field
 
 User = get_user_model()
 
@@ -73,7 +70,7 @@ class RecipeSerializerList(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
-    def __is_something(self, obj, model):
+    def check_user_recipe_in_model(self, obj, model):
         if not self.context['request'].user.is_authenticated:
             return False
 
@@ -81,10 +78,10 @@ class RecipeSerializerList(serializers.ModelSerializer):
             recipe=obj, user=self.context['request'].user).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        return self.__is_something(obj, ShoppingCart)
+        return self.check_user_recipe_in_model(obj, ShoppingCart)
 
     def get_is_favorited(self, obj):
-        return self.__is_something(obj, Favorite)
+        return self.check_user_recipe_in_model(obj, Favorite)
 
     def get_ingredients(self, obj):
         return IngredientRecipeRelationSerializer(
@@ -103,20 +100,6 @@ class RecipeCreateIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'amount')
         model = IngredientRecipeRelation
-
-
-class ImageBase64Field(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            mime_data, image_string = data.split(';base64,')
-            image_data = base64.b64decode(image_string)
-
-            mime_type = mime_data.removeprefix('data:')
-            extension = mimetypes.MimeTypes().guess_extension(mime_type)
-
-            data = ContentFile(image_data, name=f'temp.{extension}')
-
-        return super().to_internal_value(data)
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -151,7 +134,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
-    def __is_something(self, obj, model):
+    def check_user_recipe_in_model(self, obj, model):
         if not self.context['request'].user.is_authenticated:
             return False
 
@@ -159,10 +142,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             recipe=obj, user=self.context['request'].user).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        return self.__is_something(obj, ShoppingCart)
+        return self.check_user_recipe_in_model(obj, ShoppingCart)
 
     def get_is_favorited(self, obj):
-        return self.__is_something(obj, Favorite)
+        return self.check_user_recipe_in_model(obj, Favorite)
 
     @transaction.atomic
     def create(self, validated_data):
@@ -170,7 +153,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
 
         obj = Recipe.objects.create(**validated_data)
-        obj.save()
 
         obj.tags.set(tags)
 
