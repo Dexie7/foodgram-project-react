@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.serializers import (ValidationError)
 from rest_framework.settings import api_settings
 
 from recipes.models import (Favorite, Ingredient, IngredientRecipeRelation,
@@ -28,7 +29,6 @@ class AuthorSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         if not self.context['request'].user.is_authenticated:
             return False
-
         return Subscription.objects.filter(
             author=obj, user=self.context['request'].user).exists()
 
@@ -108,10 +108,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         if 'request' not in self.context:
             return False
-
         if not self.context['request'].user.is_authenticated:
             return False
-
         return Subscription.objects.filter(
             author=obj, user=self.context['request'].user).exists()
 
@@ -147,67 +145,72 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         return self.check_user_recipe_in_model(obj, Favorite)
 
+    def create_ingredients(self, ingredients, obj):
+        IngredientRecipeRelation.objects.bulk_create([
+            IngredientRecipeRelation(
+                recipe=obj,
+                ingredient=ingredient['ingredient'],
+                amount=ingredient['amount']
+            )
+            for ingredient in ingredients
+        ])
+
     @transaction.atomic
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-
         obj = Recipe.objects.create(**validated_data)
-
         obj.tags.set(tags)
-
-        for ingredient in ingredients:
-            IngredientRecipeRelation.objects.create(
-                recipe=obj, ingredient=ingredient['ingredient'],
-                amount=ingredient['amount']
-            ).save()
-
+        self.create_ingredients(ingredients, obj)
         return obj
 
     def validate(self, data):
         keys = ('ingredients', 'tags', 'text', 'name', 'cooking_time')
-
         errors = {}
-
         for key in keys:
             if key not in data:
                 errors.update({key: 'Обязательное поле'})
-
         if errors:
             raise serializers.ValidationError(errors, code='field_error')
-
         return data
+
+    def validate_ingredients(self, ingredients):
+        ingredients = [
+            ingredient.get('id') for ingredient in ingredients
+        ]
+        if len(ingredients) != len(set(ingredients)):
+            raise ValidationError(
+                'Ингредиенты рецепта должны быть уникальными'
+            )
+        return ingredients
+
+    def validate_tags(self, tags):
+        if len(tags) != len(set(tags)):
+            raise ValidationError(
+                'Теги рецепта должны быть уникальными'
+            )
+        return tags
 
     @transaction.atomic
     def update(self, instance, validated_data):
+        obj = instance
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
-
+        super().update(instance, validated_data)
         instance.tags.set(tags)
         instance.image = validated_data.get('image', instance.image)
-
         instance.ingredients.clear()
-        for ingredient in ingredients:
-            IngredientRecipeRelation.objects.create(
-                recipe=instance, ingredient=ingredient['ingredient'],
-                amount=ingredient['amount']
-            ).save()
-
-        return super().update(instance, validated_data)
+        IngredientRecipeRelation.objects.filter(recipe=obj).delete()
+        self.create_ingredients(ingredients, instance)
+        return instance
 
     def to_representation(self, instance):
         self.fields.pop('ingredients')
         self.fields['tags'] = TagSerializer(many=True)
-
         representation = super().to_representation(instance)
-
         representation['ingredients'] = IngredientRecipeRelationSerializer(
             IngredientRecipeRelation.objects.filter(
                 recipe=instance).all(), many=True).data
-
         return representation
 
     class Meta:
@@ -226,16 +229,11 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
     def get_recipes(self, obj):
         recipes_limit = int(self.context['request'].GET.get(
             'recipes_limit', api_settings.PAGE_SIZE))
-
         user = get_object_or_404(User, pk=obj.pk)
         recipes = Recipe.objects.filter(author=user)[:recipes_limit]
-
         return RecipeShortSerilizer(recipes, many=True).data
 
     def get_is_subscribed(self, obj):
-        if not self.context['request'].user.is_authenticated:
-            return False
-
         return Subscription.objects.filter(
             author=obj, user=self.context['request'].user).exists()
 

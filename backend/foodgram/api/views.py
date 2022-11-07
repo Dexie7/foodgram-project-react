@@ -156,7 +156,7 @@ def download_shopping_cart(request):
 
     total_ingredients = ingredients.values(
         'ingredient__name', 'ingredient__measurement_unit').order_by(
-        'ingredient__name').annotate(amount=Sum('amount'))
+        'ingredient__name').annotate(amount_sum=Sum('amount'))
 
     return make_pdf(
         ('Наименование', 'Количество', 'Ед.измерения'), total_ingredients,
