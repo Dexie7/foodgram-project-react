@@ -13,6 +13,11 @@ from .fields import ImageBase64Field
 User = get_user_model()
 
 
+def short_check(request, obj, model):
+    return (request.user.is_authenticated and model.objects.filter(
+            user=request.user, autor=obj).exists())
+
+
 class CustomUserCreateSerializer(djoser.serializers.UserCreateSerializer):
     id = serializers.PrimaryKeyRelatedField(
         required=False, queryset=User.objects.all())
@@ -27,10 +32,8 @@ class AuthorSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        if not self.context['request'].user.is_authenticated:
-            return False
-        return Subscription.objects.filter(
-            author=obj, user=self.context['request'].user).exists()
+        request = self.context['request']
+        return short_check(request, obj, Subscription)
 
     class Meta:
         fields = (
@@ -234,8 +237,8 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
         return RecipeShortSerilizer(recipes, many=True).data
 
     def get_is_subscribed(self, obj):
-        return Subscription.objects.filter(
-            author=obj, user=self.context['request'].user).exists()
+        request = self.context['request']
+        return short_check(request, obj, Subscription)
 
     class Meta:
         fields = ('id', 'email', 'username', 'first_name', 'last_name',
