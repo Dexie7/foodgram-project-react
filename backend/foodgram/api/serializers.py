@@ -178,26 +178,14 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors, code='field_error')
         return data
 
-    def validate_ingredients(self, value):
-        """Валидация повторяющихся ингредиентов"""
-
-        ingredients = []
-        for recipeingredient in value:
-            ing_id = recipeingredient['ingredient']['id']
-            if ing_id in ingredients:
-                raise serializers.ValidationError('Повторяющийся ингредиент!')
-            ingredients.append(ing_id)
-        return value
-
-    # def validate_ingredients(self, ingredients):
-    #     ingredients = [
-    #         ingredient.get('id') for ingredient in ingredients
-    #     ]
-    #     if len(ingredients) != len(set(ingredients)):
-    #         raise ValidationError(
-    #             'Ингредиенты рецепта должны быть уникальными'
-    #         )
-    #     return ingredients
+    def validate_ingredients(self, ingredients):
+        ingredients = [
+            ingredient.get('id') for ingredient in ingredients
+        ]
+        errors = {}
+        if len(ingredients) != len(set(ingredients)):
+            raise serializers.ValidationError(errors, code='field_error')
+        return ingredients
 
     def validate_tags(self, tags):
         if len(tags) != len(set(tags)):
