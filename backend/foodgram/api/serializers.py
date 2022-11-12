@@ -177,7 +177,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         if errors:
             raise serializers.ValidationError(errors, code='field_error')
         return data
-    
+
     def validate_ingredients(self, value):
         """Валидация повторяющихся ингредиентов"""
 
@@ -188,7 +188,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Повторяющийся ингредиент!')
             ingredients.append(ing_id)
         return value
-    
+
     # def validate_ingredients(self, ingredients):
     #     ingredients = [
     #         ingredient.get('id') for ingredient in ingredients
