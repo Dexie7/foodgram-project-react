@@ -29,7 +29,7 @@ class RecipeAdmin(AdminImageMixin, admin.ModelAdmin):
     inlines = (IngredientRecipeRelationAdminInline,)
 
     fieldsets = (
-        ('Основнвые данные', {
+        ('Основные данные', {
             'fields': (
                 'name', 'author', 'image', 'tags'
             )
