@@ -182,8 +182,9 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredients = [
             ingredient.get('id') for ingredient in ingredients
         ]
+        errors = {}
         if len(ingredients) != len(set(ingredients)):
-            raise serializers.ValidationError('Дублируется ингридиент')
+            raise serializers.ValidationError(errors, code='ingredients')
         return ingredients
 
     def validate_tags(self, tags):
