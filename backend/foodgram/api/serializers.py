@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.serializers import ValidationError
+# from rest_framework.serializers import ValidationError
 from rest_framework.settings import api_settings
 
 from recipes.models import (Favorite, Ingredient, IngredientRecipeRelation,
@@ -182,14 +182,13 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredients = [
             ingredient.get('id') for ingredient in ingredients
         ]
-        errors = {}
         if len(ingredients) != len(set(ingredients)):
-            raise serializers.ValidationError(errors, code='ingredients')
+            raise serializers.ValidationError({'ingredients': 'my message'})
         return ingredients
 
     def validate_tags(self, tags):
         if len(tags) != len(set(tags)):
-            raise ValidationError(
+            raise serializers.ValidationError(
                 'Теги рецепта должны быть уникальными'
             )
         return tags
