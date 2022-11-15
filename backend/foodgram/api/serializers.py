@@ -178,13 +178,23 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors, code='field_error')
         return data
 
-    def validate_ingredients(self, ingredients):
-        ingredients = [
-            ingredient.get('id') for ingredient in ingredients
-        ]
-        if len(ingredients) != len(set(ingredients)):
-            raise serializers.ValidationError({'ingredients': 'my message'})
-        return ingredients
+    def validate_ingredients(self, data):
+        ingredients = self.initial_data.get('indredients')
+        unique_ingredients = set()
+        for ingredient in ingredients:
+            if ingredient['id'] in unique_ingredients:
+                raise serializers.ValidationError(
+                        'Ингридиенты не должны повторяться')
+            unique_ingredients.add(ingredient['id'])
+        return data
+
+    # def validate_ingredients(self, ingredients):
+    #     ingredients = [
+    #         ingredient.get('id') for ingredient in ingredients
+    #     ]
+    #     if len(ingredients) != len(set(ingredients)):
+    #         raise serializers.ValidationError({'ingredients': 'my message'})
+    #     return ingredients
 
     def validate_tags(self, tags):
         if len(tags) != len(set(tags)):
