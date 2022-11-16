@@ -169,7 +169,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         for ingredient in ingredients:
             if ingredient['id'] in unique_ingredients:
                 raise serializers.ValidationError(
-                             'В рецепте ингредиенты не должны повторяться')
+                            'В рецепте ингредиенты не должны повторяться')
             unique_ingredients.add(ingredient['id'])
             try:
                 if int(ingredient.get('amount')) <= 0:
