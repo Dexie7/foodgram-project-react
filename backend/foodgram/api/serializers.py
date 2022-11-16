@@ -159,38 +159,50 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             for ingredient in ingredients
         ])
 
-    @transaction.atomic
-    def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        obj = Recipe.objects.create(**validated_data)
-        obj.save()
-        obj.tags.set(tags)
+    def validate_ingredients(self, data):
+        """Валидатор ингридиентов"""
+        ingredients = self.initial_data.get('ingredients')
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Нужно выбрать минимум 1 ингредиент!')
+        unique_ingredients = set()
         for ingredient in ingredients:
-            IngredientRecipeRelation.objects.create(
-                recipe=obj, ingredient=ingredient['ingredient'],
-                amount=ingredient['amount']
-            ).save()
-        return obj
-
-    def validate(self, data):
-        keys = ('ingredients', 'tags', 'text', 'name', 'cooking_time')
-        errors = {}
-        for key in keys:
-            if key not in data:
-                errors.update({key: 'Обязательное поле'})
-        if errors:
-            raise serializers.ValidationError(errors, code='field_error')
+            if ingredient['id'] in unique_ingredients:
+                raise serializers.ValidationError(
+                             'В рецепте ингредиенты не должны повторяться')
+            unique_ingredients.add(ingredient['id'])
+            try:
+                if int(ingredient.get('amount')) <= 0:
+                    raise serializers.ValidationError(
+                        'Количество должно быть положительным!')
+            except Exception:
+                raise serializers.ValidationError(
+                    {'amount': 'Количество должно быть целым числом'}
+                )
+            check_id = ingredient['id']
+            check_ingredient = Ingredient.objects.filter(id=check_id)
+            if not check_ingredient.exists():
+                raise serializers.ValidationError(
+                    'Данного продукта нет в базе!')
         return data
+    #     мой код начало
+    # @transaction.atomic
+    # def create(self, validated_data):
+    #     ingredients = validated_data.pop('ingredients')
+    #     tags = validated_data.pop('tags')
+    #     obj = Recipe.objects.create(**validated_data)
+    #     obj.tags.set(tags)
+    #     self.create_ingredients(ingredients, obj)
+    #     return obj
 
-    # def validate_ingredients(self, data):
-    #     ingredients = self.initial_data.get('indredients')
-    #     unique_ingredients = set()
-    #     for ingredient in ingredients:
-    #         if ingredient['id'] in unique_ingredients:
-    #             raise serializers.ValidationError(
-    #                 'Ингридиенты не должны повторяться')
-    #         unique_ingredients.add(ingredient['id'])
+    # def validate(self, data):
+    #     keys = ('ingredients', 'tags', 'text', 'name', 'cooking_time')
+    #     errors = {}
+    #     for key in keys:
+    #         if key not in data:
+    #             errors.update({key: 'Обязательное поле'})
+    #     if errors:
+    #         raise serializers.ValidationError(errors, code='field_error')
     #     return data
 
     # def validate_ingredients(self, ingredients):
@@ -207,6 +219,43 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     #             'Теги рецепта должны быть уникальными'
     #         )
     #     return tags
+    # мой код конец
+
+    # начало с горловым
+    # @transaction.atomic
+    # def create(self, validated_data):
+    #     ingredients = validated_data.pop('ingredients')
+    #     tags = validated_data.pop('tags')
+    #     obj = Recipe.objects.create(**validated_data)
+    #     obj.save()
+    #     obj.tags.set(tags)
+    #     for ingredient in ingredients:
+    #         IngredientRecipeRelation.objects.create(
+    #             recipe=obj, ingredient=ingredient['ingredient'],
+    #             amount=ingredient['amount']
+    #         ).save()
+    #     return obj
+
+    # def validate(self, data):
+    #     keys = ('ingredients', 'tags', 'text', 'name', 'cooking_time')
+    #     errors = {}
+    #     for key in keys:
+    #         if key not in data:
+    #             errors.update({key: 'Обязательное поле'})
+    #     if errors:
+    #         raise serializers.ValidationError(errors, code='field_error')
+    #     return data
+    # конец
+
+    # def validate_ingredients(self, data):
+    #     ingredients = self.initial_data.get('indredients')
+    #     unique_ingredients = set()
+    #     for ingredient in ingredients:
+    #         if ingredient['id'] in unique_ingredients:
+    #             raise serializers.ValidationError(
+    #                 'Ингридиенты не должны повторяться')
+    #         unique_ingredients.add(ingredient['id'])
+    #     return data
 
     @transaction.atomic
     def update(self, instance, validated_data):
