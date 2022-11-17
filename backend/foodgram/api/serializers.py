@@ -9,7 +9,8 @@ from rest_framework.settings import api_settings
 from recipes.models import (Favorite, Ingredient, IngredientRecipeRelation,
                             Recipe, ShoppingCart, Subscription, Tag)
 
-from .fields import ImageBase64Field
+# from .fields import ImageBase64Field
+from drf_extra_fields.fields import Base64ImageField
 
 User = get_user_model()
 
@@ -131,7 +132,7 @@ class RecipeShortSerilizer(serializers.ModelSerializer):
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     ingredients = RecipeCreateIngredientSerializer(many=True)
-    image = ImageBase64Field()
+    image = Base64ImageField()
     author = CustomUserSerializer(required=False)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -153,7 +154,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         IngredientRecipeRelation.objects.bulk_create([
             IngredientRecipeRelation(
                 recipe=obj,
-                # ingredient=ingredient['ingredient'],
+                ingredient=id['ingredient'],
                 amount=ingredient['amount']
             )
             for ingredient in ingredients
@@ -178,22 +179,22 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors, code='field_error')
         return data
 
-    def validate_ingredients(self, ingredients):
-        ingredients = [
-            id.get('id') for id in ingredients
-        ]
-        if len(ingredients) != len(set(ingredients)):
-            raise serializers.ValidationError({'ingredients': [
-                'Ингридиенты повторяются, проверьте'
-            ]})
-        return ingredients
+    # def validate_ingredients(self, ingredients):
+    #     ingredients = [
+    #         id.get('id') for id in ingredients
+    #     ]
+    #     if len(ingredients) != len(set(ingredients)):
+    #         raise serializers.ValidationError({'ingredients': [
+    #             'Ингридиенты повторяются, проверьте'
+    #         ]})
+    #     return ingredients
 
-    def validate_tags(self, tags):
-        if len(tags) != len(set(tags)):
-            raise serializers.ValidationError(
-                'Теги рецепта должны быть уникальными'
-            )
-        return tags
+    # def validate_tags(self, tags):
+    #     if len(tags) != len(set(tags)):
+    #         raise serializers.ValidationError(
+    #             'Теги рецепта должны быть уникальными'
+    #         )
+    #     return tags
 
     # начало горлов
     # @transaction.atomic
@@ -269,7 +270,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     # def validate_ingredients(self, data):
     #     ingredients = self.initial_data.get('indredients')
-    #     unique_ingredients = set()
+    #     unique_ingredients = []
     #     for ingredient in ingredients:
     #         if ingredient['id'] in unique_ingredients:
     #             raise serializers.ValidationError(
