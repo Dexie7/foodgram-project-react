@@ -8,8 +8,6 @@ from rest_framework.settings import api_settings
 
 from recipes.models import (Favorite, Ingredient, IngredientRecipeRelation,
                             Recipe, ShoppingCart, Subscription, Tag)
-
-# from .fields import ImageBase64Field
 from drf_extra_fields.fields import Base64ImageField
 
 User = get_user_model()
