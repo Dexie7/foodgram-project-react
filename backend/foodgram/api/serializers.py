@@ -272,7 +272,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     #     unique_ingredients = set()
     #     for ingredient in ingredients:
     #         if ingredient['id'] in unique_ingredients:
-    #             raise serializers.ValidationError( 
+    #             raise serializers.ValidationError(
     #                 'Ингридиенты не должны повторяться')
     #         unique_ingredients.add(ingredient['id'])
     #     return data
