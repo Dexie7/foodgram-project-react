@@ -153,7 +153,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         IngredientRecipeRelation.objects.bulk_create([
             IngredientRecipeRelation(
                 recipe=obj,
-                ingredient=ingredient['ingredient'],
+                # ingredient=ingredient['ingredient'],
                 amount=ingredient['amount']
             )
             for ingredient in ingredients
@@ -180,7 +180,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, ingredients):
         ingredients = [
-            ingredient.get('id') for ingredient in ingredients
+            id.get('id') for id in ingredients
         ]
         if len(ingredients) != len(set(ingredients)):
             raise serializers.ValidationError({'ingredients': [
@@ -272,7 +272,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     #     unique_ingredients = set()
     #     for ingredient in ingredients:
     #         if ingredient['id'] in unique_ingredients:
-    #             raise serializers.ValidationError(
+    #             raise serializers.ValidationError( 
     #                 'Ингридиенты не должны повторяться')
     #         unique_ingredients.add(ingredient['id'])
     #     return data
