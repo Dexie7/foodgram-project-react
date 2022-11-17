@@ -266,15 +266,15 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     #     return tags
     # с принтами конец
 
-    # def validate_ingredients(self, data):
-    #     ingredients = self.initial_data.get('indredients')
-    #     unique_ingredients = []
-    #     for ingredient in ingredients:
-    #         if ingredient['id'] in unique_ingredients:
-    #             raise serializers.ValidationError(
-    #                 'Ингридиенты не должны повторяться')
-    #         unique_ingredients.add(ingredient['id'])
-    #     return data
+    def validate_ingredients(self, data):
+        ingredients = self.initial_data.get('indredients')
+        unique_ingredients = []
+        for ingredient in ingredients:
+            if ingredient['id'] in unique_ingredients:
+                raise serializers.ValidationError(
+                    'Ингридиенты не должны повторяться')
+            unique_ingredients.add(ingredient['id'])
+        return data
 
     @transaction.atomic
     def update(self, instance, validated_data):
