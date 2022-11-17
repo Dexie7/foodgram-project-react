@@ -152,7 +152,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         IngredientRecipeRelation.objects.bulk_create([
             IngredientRecipeRelation(
                 recipe=obj,
-                ingredient=id['ingredient'],
+                ingredient=ingredient['ingredient'],
                 amount=ingredient['amount']
             )
             for ingredient in ingredients
