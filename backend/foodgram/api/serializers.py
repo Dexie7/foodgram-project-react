@@ -15,7 +15,7 @@ User = get_user_model()
 
 def short_check(request, obj, model):
     return (request.user.is_authenticated and model.objects.filter(
-            user=request.user, autor=obj).exists())
+            user=request.user, author=obj).exists())
 
 
 class CustomUserCreateSerializer(djoser.serializers.UserCreateSerializer):
@@ -97,8 +97,8 @@ class RecipeSerializerList(serializers.ModelSerializer):
 
 
 class RecipeCreateIngredientSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        source='ingredient', queryset=Ingredient.objects.all())
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    amount = serializers.IntegerField()
 
     class Meta:
         fields = ('id', 'amount')
@@ -152,7 +152,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         IngredientRecipeRelation.objects.bulk_create([
             IngredientRecipeRelation(
                 recipe=obj,
-                ingredient=ingredient['ingredient'],
+                ingredient=ingredient['id'],
                 amount=ingredient['amount']
             )
             for ingredient in ingredients
@@ -175,105 +175,13 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 errors.update({key: 'Обязательное поле'})
         if errors:
             raise serializers.ValidationError(errors, code='field_error')
-        return data
-
-    # def validate_ingredients(self, ingredients):
-    #     ingredients = [
-    #         id.get('id') for id in ingredients
-    #     ]
-    #     if len(ingredients) != len(set(ingredients)):
-    #         raise serializers.ValidationError({'ingredients': [
-    #             'Ингридиенты повторяются, проверьте'
-    #         ]})
-    #     return ingredients
-
-    # def validate_tags(self, tags):
-    #     if len(tags) != len(set(tags)):
-    #         raise serializers.ValidationError(
-    #             'Теги рецепта должны быть уникальными'
-    #         )
-    #     return tags
-
-    # начало горлов
-    # @transaction.atomic
-    # def create(self, validated_data):
-    #     ingredients = validated_data.pop('ingredients')
-    #     tags = validated_data.pop('tags')
-    #     obj = Recipe.objects.create(**validated_data)
-    #     obj.save()
-    #     obj.tags.set(tags)
-    #     for ingredient in ingredients:
-    #         IngredientRecipeRelation.objects.create(
-    #             recipe=obj, ingredient=ingredient['ingredient'],
-    #             amount=ingredient['amount']
-    #         ).save()
-    #     return obj
-
-    # def validate(self, data):
-    #     keys = ('ingredients', 'tags', 'text', 'name', 'cooking_time')
-    #     errors = {}
-    #     for key in keys:
-    #         if key not in data:
-    #             errors.update({key: 'Обязательное поле'})
-    #     if errors:
-    #         raise serializers.ValidationError(errors, code='field_error')
-    #     return data
-    # конец горлов
-
-    # с принтами начало
-    # @transaction.atomic
-    # def create(self, validated_data):
-    #     ingredients = validated_data.pop('ingredients')
-    #     print(ingredients)
-    #     tags = validated_data.pop('tags')
-    #     print(tags)
-    #     obj = Recipe.objects.create(**validated_data)
-    #     print(obj)
-    #     obj.tags.set(tags)
-    #     self.create_ingredients(ingredients, obj)
-    #     print(1)
-    #     return obj
-
-    # def validate(self, data):
-    #     keys = ('ingredients', 'tags', 'text', 'name', 'cooking_time')
-    #     errors = {}
-    #     print(errors)
-    #     for key in keys:
-    #         if key not in data:
-    #             errors.update({key: 'Обязательное поле'})
-    #     if errors:
-    #         print('raise1')
-    #         raise serializers.ValidationError(errors, code='field_error')
-    #     print('return1')
-    #     return data
-
-    # def validate_ingredients(self, ingredients):
-    #     ingredients = [
-    #         ingredient.get('id') for ingredient in ingredients
-    #     ]
-    #     print(ingredients)
-    #     if len(ingredients) != len(set(ingredients)):
-    #         print('raise2')
-    #         raise serializers.ValidationError({'ingredients': 'my message'})
-    #     print('return2')
-    #     return ingredients
-
-    # def validate_tags(self, tags):
-    #     if len(tags) != len(set(tags)):
-    #         raise serializers.ValidationError(
-    #             'Теги рецепта должны быть уникальными'
-    #         )
-    #     return tags
-    # с принтами конец
-
-    def validate_ingredients(self, data):
-        ingredients = self.initial_data.get('indredients')
+        ingredients = self.initial_data.get('ingredients')
         unique_ingredients = []
         for ingredient in ingredients:
             if ingredient['id'] in unique_ingredients:
                 raise serializers.ValidationError(
                     'Ингридиенты не должны повторяться')
-            unique_ingredients.add(ingredient['id'])
+            unique_ingredients.append(ingredient['id'])
         return data
 
     @transaction.atomic
