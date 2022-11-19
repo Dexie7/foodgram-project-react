@@ -11,8 +11,6 @@ DEBUG = True
 # DEBUG = int(os.environ.get('DEBUG', '0'))
 
 ALLOWED_HOSTS = ['*']
-# ALLOWED_HOSTS = os.environ.get(
-#     'ALLOWED_HOSTS', 'localhost 127.0.0.1').split(' ')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
