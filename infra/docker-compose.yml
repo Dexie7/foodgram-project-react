@@ -8,12 +8,12 @@ services:
       - ./.env
 
   frontend:
-    image: dexie7/foodgram_frontend
+    image: dexie7/foodgram_frontend:latest
     volumes:
       - frontend_value:/app/result_build/build/
 
   backend:
-    image: dexie7/foodgram_backend
+    image: dexie7/foodgram_backend:latest
     domainname: foodgram.cianoid.org
     restart: always
     volumes:
