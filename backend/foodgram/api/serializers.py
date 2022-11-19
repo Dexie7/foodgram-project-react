@@ -179,8 +179,15 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         for ingredient in ingredients:
             if ingredient['id'] in unique_ingredients:
                 raise serializers.ValidationError(
-                    'Ингридиенты не должны повторяться')
+                    'Ингредиенты не должны повторяться')
             unique_ingredients.append(ingredient['id'])
+        try:
+            if int(ingredient.get('amount')) <= 0:
+                raise serializers.ValidationError(
+                    'Количество должно быть положительным!')
+        except Exception:
+            raise serializers.ValidationError(
+                    {'amount': 'Количество должно быть положительным числом'})
         return data
 
     @transaction.atomic

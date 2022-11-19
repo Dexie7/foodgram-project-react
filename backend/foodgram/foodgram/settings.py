@@ -7,7 +7,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', default='very-secret-key@#RFesf')
 
-DEBUG = int(os.environ.get('DEBUG', '0'))
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
