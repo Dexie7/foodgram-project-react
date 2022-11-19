@@ -184,7 +184,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         try:
             if int(ingredient.get('amount')) <= 0:
                 raise serializers.ValidationError(
-                    'Количество должно быть положительным')
+                    'Количество должно быть положительным!')
         except Exception:
             raise serializers.ValidationError(
                     {'amount': 'Количество должно быть положительным числом'})
